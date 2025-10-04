@@ -22,10 +22,11 @@ stage('Build, Scan, and Push Docker Compose Images to ECR') {
             script {
                 def accountId = sh(script: "aws sts get-caller-identity --query Account --output text", returnStdout: true).trim()
                 def ecrBase = "${accountId}.dkr.ecr.${env.AWS_REGION}.amazonaws.com"
+ 
+                sh """
                 cd "${WORKSPACE}"                     
                 echo ">>> Now in: \$(pwd)"
-                ls -la      
-                sh """
+                ls -la     
                 aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ecrBase}
                 
                 docker compose build
