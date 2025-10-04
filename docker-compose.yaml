@@ -18,13 +18,15 @@ services:
       context: ./Jenkins  
       dockerfile: ../dockerfiles/Jenkins.Dockerfile
     restart: always
+    privileged: true
+    user: root
+
     ports:
       - "8080:8080"      
       - "50000:50000"   
     volumes:
-      - .Jenkins/jenkins_home:/var/jenkins_home
-      - .Jenkins//var/run/docker.sock:/var/run/docker.sock  
-
+      - ./.Jenkins/jenkins_home:/var/jenkins_home
+      - //var/run/docker.sock:/var/run/docker.sock
 
   frontend:
     build:
