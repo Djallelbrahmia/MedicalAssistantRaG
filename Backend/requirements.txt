@@ -1,0 +1,13 @@
+langchain
+langchain_community
+langchain_huggingface
+langchain_groq
+faiss-cpu
+pypdf
+huggingface_hub
+flask
+python-dotenv
+sentence-transformers
+flask-jwt-extended
+redis
+flask-cors

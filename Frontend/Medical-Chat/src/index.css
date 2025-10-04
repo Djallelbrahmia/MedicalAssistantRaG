@@ -1,0 +1,55 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@keyframes blink {
+  0%, 100% { border-color: rgba(30, 58, 138, 1); } /* blue-800 */
+  50% { border-color: rgba(30, 58, 138, 0); }      /* transparent */
+}
+*{
+    color: white;
+}
+.blinking-border {
+  animation: blink 1s infinite;
+}
+
+@keyframes slideFadeIn {
+  0% {
+    transform: translateY(10px); 
+    opacity: 0;                    
+  }
+  100% {
+    transform: translateY(0);       
+    opacity: 1;                     
+  }
+}
+.slide-down {
+  opacity: 0; 
+  animation: slideFadeIn 0.5s ease-out forwards;
+  animation-delay: 6s; 
+  cursor: pointer;
+}
+
+.slide-down:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 0 4px;
+}
+
+.mainTextpopup:hover{
+transform: translateY(0) skew(3deg, -3deg) scale(1.02); 
+  transition: transform 0.25s ease-in-out, background-color 0.25s;
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 0px rgba(255, 255, 255, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 12px rgba(255, 255, 255, 0.6);
+  }
+}
+
+.glow-btn {
+  animation: pulseGlow 2s infinite;
+}

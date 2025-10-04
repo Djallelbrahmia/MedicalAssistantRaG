@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+vectorestore/
+.venv/
+rag_medical_chatbot.egg-info/
+vectorstore/
+.gitignore 
+pyproject.toml 
+uv.lock
+logs/

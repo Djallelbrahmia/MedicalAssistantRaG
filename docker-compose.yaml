@@ -1,0 +1,45 @@
+services:
+  backend:
+    build:
+      context: ./Backend
+      dockerfile: ../dockerfiles/Server.Dockerfile
+    container_name: backend_container
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./Backend/logs:/app/logs  
+    env_file:
+      - ./Backend/.env
+    depends_on:
+      - redis
+
+  frontend:
+    build:
+      context: ./Frontend/Medical-Chat
+      dockerfile: ../../dockerfiles/Client.Dockerfile
+      args:
+        VITE_SERVER_URL: http://127.0.0.1:5000
+    container_name: frontend_container
+    ports:
+      - "3000:3000"
+
+    depends_on:
+      - backend
+  redis:
+    container_name: redis_medical_container
+    image: redis:alpine
+    restart: always
+    ports:
+      - "6379:6379"
+    command: redis-server --loglevel warning
+    volumes:
+      - ./docker-volumes/cache:/data
+
+  redisinsight:
+    container_name: redisinsight_container
+    image: redis/redisinsight:latest
+    restart: always
+    ports:
+      - "5540:5540"
+    depends_on:
+      - redis
