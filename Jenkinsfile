@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         AWS_REGION = 'eu-west-3'
-        ECR_REPO = 'my-repo'
+        ECR_REPO = 'medicalrag'
         IMAGE_TAG = 'latest'
         SERVICE_NAME = 'llmops-medical-service'
     }
@@ -16,7 +16,38 @@ pipeline {
                     checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[credentialsId: 'GithubToken', url: 'https://github.com/Djallelbrahmia/MedicalAssistantRaG.git']])                }
             }
         }
+stage('Build, Scan, and Push Docker Compose Images to ECR') {
+    steps {
+        withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'AWSCRED']]) {
+            script {
+                def accountId = sh(script: "aws sts get-caller-identity --query Account --output text", returnStdout: true).trim()
+                def ecrBase = "${accountId}.dkr.ecr.${env.AWS_REGION}.amazonaws.com"
+
+                sh """
+                aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ecrBase}
+                
+                # Build all images defined in docker-compose.yml
+                docker compose build
+
+                for service in \$(docker compose config --services); do
+                    trivy image --severity HIGH,CRITICAL \
+                        --format json \
+                        -o trivy-\${service}-report.json \
+                        \${service}:latest || true
+
+                    imageName="${ecrBase}/\${service}:${IMAGE_TAG}"
+                    docker tag \${service}:latest \${imageName}
+                    docker push \${imageName}
+                done
+                """
+            }
+        }
+    }
+}
 
        
     }
 }
+
+
+// 879161328012.dkr.ecr.eu-west-3.amazonaws.com/medicalrag
