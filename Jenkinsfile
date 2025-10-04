@@ -26,7 +26,6 @@ stage('Build, Scan, and Push Docker Compose Images to ECR') {
                 sh """
                 aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ecrBase}
                 
-                # Build all images defined in docker-compose.yml
                 docker compose build
 
                 for service in \$(docker compose config --services); do
