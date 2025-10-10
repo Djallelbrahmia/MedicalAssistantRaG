@@ -3,9 +3,9 @@ pipeline {
 
     environment {
         AWS_REGION = 'eu-west-3'
-        ECR_REPO = 'medicalrag'
+        ECR_REPO = 'djallelragmedical'
         IMAGE_TAG = 'latest'
-        SERVICE_NAME = 'llmops-medical-service'
+        SERVICE_NAME = 'backend-medical-service'
     }
 
     stages {
@@ -13,43 +13,41 @@ pipeline {
             steps {
                 script {
                     echo 'Cloning GitHub repo to Jenkins...'
-                    checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[credentialsId: 'GithubToken', url: 'https://github.com/Djallelbrahmia/MedicalAssistantRaG.git']])                }
+                    checkout scmGit(
+                        branches: [[name: '*/main']],
+                        extensions: [],
+                        userRemoteConfigs: [[
+                            credentialsId: 'GithubToken',
+                            url: 'https://github.com/Djallelbrahmia/MedicalAssistantRaG.git'
+                        ]]
+                    )
+                }
             }
         }
-stage('Build, Scan, and Push Docker Compose Images to ECR') {
-    steps {
-        withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'AWSCRED']]) {
-            script {
-                def accountId = sh(script: "aws sts get-caller-identity --query Account --output text", returnStdout: true).trim()
-                def ecrBase = "${accountId}.dkr.ecr.${env.AWS_REGION}.amazonaws.com"
- 
-                sh """
-                cd "${WORKSPACE}"                     
-                echo ">>> Now in: \$(pwd)"
-                ls -la     
-                aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ecrBase}
-                
-                docker compose build
 
-                for service in \$(docker compose config --services); do
-                    trivy image --severity HIGH,CRITICAL \
-                        --format json \
-                        -o trivy-\${service}-report.json \
-                        \${service}:latest || true
+        stage('Build, Scan, and Push Docker Image to ECR') {
+            steps {
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-token']]) {
+                    script {
+                        def accountId = sh(
+                            script: "aws sts get-caller-identity --query Account --output text",
+                            returnStdout: true
+                        ).trim()
+                        def ecrUrl = "${accountId}.dkr.ecr.${env.AWS_REGION}.amazonaws.com/${env.ECR_REPO}"
+                        def imageFullTag = "${ecrUrl}:${IMAGE_TAG}"
 
-                    imageName="${ecrBase}/\${service}:${IMAGE_TAG}"
-                    docker tag \${service}:latest \${imageName}
-                    docker push \${imageName}
-                done
-                """
+                        sh """
+                        aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ecrUrl}
+                        docker build -t ${env.ECR_REPO}:${IMAGE_TAG} -f dockerfiles/Server.Dockerfile .
+                        trivy image --severity HIGH,CRITICAL --format json -o trivy-report.json ${env.ECR_REPO}:${IMAGE_TAG} || true
+                        docker tag ${env.ECR_REPO}:${IMAGE_TAG} ${imageFullTag}
+                        docker push ${imageFullTag}
+                        """
+
+                        archiveArtifacts artifacts: 'trivy-report.json', allowEmptyArchive: true
+                    }
+                }
             }
         }
     }
 }
-
-       
-    }
-}
-
-
-// 879161328012.dkr.ecr.eu-west-3.amazonaws.com/medicalrag
