@@ -10,9 +10,6 @@ RUN npm i -g serve
 
 COPY . .
 
-ARG VITE_SERVER_URL
-
-ENV VITE_SERVER_URL=$VITE_SERVER_URL
 RUN npm run build
 
 EXPOSE 3000

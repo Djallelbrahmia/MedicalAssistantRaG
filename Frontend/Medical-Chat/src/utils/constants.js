@@ -1,4 +1,14 @@
-export const API_BASE =
-  import.meta.env.MODE === "development"
-    ? "http://127.0.0.1:5000"
-    : import.meta.env.VITE_SERVER_URL
+let runtimeConfig = null;
+
+async function loadRuntimeConfig() {
+if (!runtimeConfig) {
+    const res = await fetch('/config.json');
+    runtimeConfig = await res.json();
+}
+return runtimeConfig;
+}
+
+const { SERVER_URL } = await loadRuntimeConfig();
+
+
+export const API_BASE =SERVER_URL || 'http://localhost:5000';
