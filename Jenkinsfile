@@ -27,7 +27,7 @@ pipeline {
 
         stage('Build, Scan, and Push Docker Image to ECR') {
             steps {
-                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-token']]) {
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'AWSCRED']]) {
                     script {
                         def accountId = sh(
                             script: "aws sts get-caller-identity --query Account --output text",
